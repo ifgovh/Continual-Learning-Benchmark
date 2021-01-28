@@ -5,6 +5,8 @@ from types import MethodType
 import models
 from utils.metric import accuracy, AverageMeter, Timer
 
+from madam import Madam
+
 class NormalNN(nn.Module):
     '''
     Normal Neural Network with SGD for classification
