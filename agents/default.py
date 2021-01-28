@@ -5,7 +5,7 @@ from types import MethodType
 import models
 from utils.metric import accuracy, AverageMeter, Timer
 
-from madam import Madam
+from agents.madam import Madam
 
 class NormalNN(nn.Module):
     '''
@@ -42,17 +42,23 @@ class NormalNN(nn.Module):
         optimizer_arg = {'params':self.model.parameters(),
                          'lr':self.config['lr'],
                          'weight_decay':self.config['weight_decay']}
-        if self.config['optimizer'] in ['SGD','RMSprop']:
-            optimizer_arg['momentum'] = self.config['momentum']
-        elif self.config['optimizer'] in ['Rprop']:
-            optimizer_arg.pop('weight_decay')
-        elif self.config['optimizer'] == 'amsgrad':
-            optimizer_arg['amsgrad'] = True
-            self.config['optimizer'] = 'Adam'
+        if self.config['optimizer'] == 'Madam':        
+            self.optimizer = Madam(self.model.parameters(), lr=self.config['lr'])
+            self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.config['schedule'],
+                                                                  gamma=0.1)
+        else:
+            if self.config['optimizer'] in ['SGD','RMSprop']:
+                optimizer_arg['momentum'] = self.config['momentum']
+            elif self.config['optimizer'] in ['Rprop']:
+                optimizer_arg.pop('weight_decay')
+            elif self.config['optimizer'] == 'amsgrad':
+                optimizer_arg['amsgrad'] = True
+                self.config['optimizer'] = 'Adam'
 
-        self.optimizer = torch.optim.__dict__[self.config['optimizer']](**optimizer_arg)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.config['schedule'],
-                                                              gamma=0.1)
+            self.optimizer = torch.optim.__dict__[self.config['optimizer']](**optimizer_arg)
+            self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.config['schedule'],
+                                                                  gamma=0.1)
+        
 
     def create_model(self):
         cfg = self.config

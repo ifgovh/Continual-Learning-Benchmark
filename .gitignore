@@ -9,8 +9,9 @@ outputs/
 .DS_Store
 *.pth
 *.png
-.swp
-
+*.swp
+*.err
+*.out
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
